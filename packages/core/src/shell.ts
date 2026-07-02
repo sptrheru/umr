@@ -125,22 +125,39 @@ export class BunCommandRunner implements CommandRunner {
   }
 
   async commandExists(command: string): Promise<boolean> {
+    const extensions =
+      process.platform === "win32"
+        ? (process.env.PATHEXT ?? ".EXE")
+            .split(";")
+            .map((e) => e.toLowerCase())
+        : [""];
+
     if (command.includes(path.sep)) {
-      try {
-        await access(command, fsConstants.X_OK);
-        return true;
-      } catch {
-        return false;
+      for (const ext of extensions) {
+        const candidate =
+          process.platform === "win32" && path.extname(command) === ""
+            ? command + ext
+            : command;
+        try {
+          await access(candidate);
+          return true;
+        } catch {}
       }
+      return false;
     }
 
     const pathEnv = process.env.PATH ?? "";
     for (const segment of pathEnv.split(path.delimiter)) {
-      const candidate = path.join(segment, command);
-      try {
-        await access(candidate, fsConstants.X_OK);
-        return true;
-      } catch {}
+      for (const ext of extensions) {
+        const candidate =
+          process.platform === "win32"
+            ? path.join(segment, command + ext)
+            : path.join(segment, command);
+        try {
+          await access(candidate);
+          return true;
+        } catch {}
+      }
     }
 
     return false;

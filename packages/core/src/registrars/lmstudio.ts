@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { link } from "node:fs/promises";
+import { homedir } from "node:os";
 import path from "node:path";
 
 import { ManagerError } from "../errors";
@@ -80,7 +81,7 @@ export class LMStudioRegistrarAdapter implements RegistrarAdapter {
       return path.resolve(override);
     }
 
-    const home = this.env.HOME ?? process.env.HOME;
+    const home = this.env.HOME ?? process.env.HOME ?? homedir();
     const candidates = [
       home ? path.join(home, ".lmstudio", "models") : null,
       home ? path.join(home, ".cache", "lm-studio", "models") : null,
@@ -106,7 +107,7 @@ export class LMStudioRegistrarAdapter implements RegistrarAdapter {
       return "lms";
     }
 
-    const home = this.env.HOME ?? process.env.HOME;
+    const home = this.env.HOME ?? process.env.HOME ?? homedir();
     const candidates = [
       home ? path.join(home, ".cache", "lm-studio", "bin", "lms") : null,
       home ? path.join(home, ".lmstudio", "bin", "lms") : null,
